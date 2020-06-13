@@ -1,9 +1,10 @@
 //jshint esversion:6
+require('dotenv').config()
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require('mongoose');
-
+const encrypt= require("mongoose-encryption");
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -14,11 +15,17 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 
 mongoose.connect("mongodb://localhost:27017/userDB", {useNewUrlParser: true, useUnifiedTopology: true});
-const userSchema = {
-  email: String,
-  password: String
-};
+//its not simple javascript object but object created from mongoose schema class
+const userSchema = new mongoose.Schema(
+  {
+    email: String,
+    password: String
+  }
+);
+//key used to encrypt database
 
+//for encrypting multiple fields add them into [] array like ["password","age",------]
+userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ["password"]});
 const User = new mongoose.model("User", userSchema);
 
 app.get("/", function(req,res){
